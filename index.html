@@ -52,8 +52,8 @@
     }
 
     function addEntry() {
-      const word = document.getElementById("word").value.trim();
-      const meaning = document.getElementById("meaning").value.trim();
+      const word = document.getElementById("word").value.replace(/ /g, '@').trim();
+      const meaning = document.getElementById("meaning").value.replace(/ /g, '@').trim();
       if (!word || !meaning) {
         alert("英単語と意味の両方を入力してください");
         return;
