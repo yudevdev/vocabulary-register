@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>単語管理アプリ</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin: 5px; }
+    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    button.delete-btn { color: white; background: crimson; border: none; padding: 5px 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h1>単語管理アプリ</h1>
+
+  <!-- ファイル選択とボタン -->
+  <input type="file" id="csvFile" accept=".csv" style="display: none;">
+  <button onclick="triggerCSVUpload()">インポート（CSV読み込み）</button>
+  <button onclick="downloadCSV()">CSVダウンロード</button>
+  <br><br>
+
+  <!-- 単語入力 -->
+  <input type="text" id="word" placeholder="英単語">
+  <input type="text" id="meaning" placeholder="意味">
+  <button onclick="addEntry()">登録</button>
+
+  <!-- テーブル -->
+  <table id="wordTable">
+    <thead>
+      <tr><th>英単語</th><th>意味</th><th>操作</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const entries = [];
+
+    function updateTable() {
+      const tbody = document.querySelector("#wordTable tbody");
+      tbody.innerHTML = "";
+      entries.forEach((entry, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${entry.word}</td>
+          <td>${entry.meaning}</td>
+          <td><button class="delete-btn" onclick="deleteEntry(${index})">削除</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function addEntry() {
+      const word = document.getElementById("word").value.trim();
+      const meaning = document.getElementById("meaning").value.trim();
+      if (!word || !meaning) {
+        alert("英単語と意味の両方を入力してください");
+        return;
+      }
+      entries.push({ word, meaning });
+      updateTable();
+      document.getElementById("word").value = "";
+      document.getElementById("meaning").value = "";
+    }
+
+    function deleteEntry(index) {
+      if (confirm("この単語を削除しますか？")) {
+        entries.splice(index, 1);
+        updateTable();
+      }
+    }
+
+    function downloadCSV() {
+      if (entries.length === 0) {
+        alert("データがありません");
+        return;
+      }
+
+      let csvContent = "英単語,意味\n";
+      entries.forEach(entry => {
+        csvContent += `${entry.word},${entry.meaning}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "words.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function triggerCSVUpload() {
+      document.getElementById("csvFile").click();
+    }
+
+    document.getElementById("csvFile").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const lines = event.target.result.split(/\r?\n/);
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const [word, meaning] = line.split(",");
+          if (word && meaning) {
+            entries.push({ word, meaning });
+          }
+        }
+        updateTable();
+      };
+      reader.readAsText(file);
+    });
+  </script>
+
+</body>
+</html>
