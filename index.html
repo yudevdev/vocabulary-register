@@ -42,11 +42,27 @@
       tbody.innerHTML = "";
       entries.forEach((entry, index) => {
         const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${entry.word}</td>
-          <td>${entry.meaning}</td>
-          <td><button class="delete-btn" onclick="deleteEntry(${index})">削除</button></td>
-        `;
+
+        if (entry.editing) {
+          row.innerHTML = `
+            <td><input type="text" id="editWord${index}" value="${entry.word}"></td>
+            <td><input type="text" id="editMeaning${index}" value="${entry.meaning}"></td>
+            <td>
+              <button class="save-btn" onclick="saveEdit(${index})">保存</button>
+              <button class="cancel-btn" onclick="cancelEdit(${index})">キャンセル</button>
+            </td>
+          `;
+        } else {
+          row.innerHTML = `
+            <td>${entry.word}</td>
+            <td>${entry.meaning}</td>
+            <td>
+              <button class="edit-btn" onclick="editEntry(${index})">編集</button>
+              <button class="delete-btn" onclick="deleteEntry(${index})">削除</button>
+            </td>
+          `;
+        }
+
         tbody.appendChild(row);
       });
     }
@@ -58,7 +74,7 @@
         alert("英単語と意味の両方を入力してください");
         return;
       }
-      entries.push({ word, meaning });
+      entries.push({ word, meaning, editing: false });
       updateTable();
       document.getElementById("word").value = "";
       document.getElementById("meaning").value = "";
@@ -69,6 +85,27 @@
         entries.splice(index, 1);
         updateTable();
       }
+    }
+
+    function editEntry(index) {
+      entries[index].editing = true;
+      updateTable();
+    }
+
+    function saveEdit(index) {
+      const newWord = document.getElementById(`editWord${index}`).value.trim();
+      const newMeaning = document.getElementById(`editMeaning${index}`).value.trim();
+      if (!newWord || !newMeaning) {
+        alert("英単語と意味の両方を入力してください");
+        return;
+      }
+      entries[index] = { word: newWord, meaning: newMeaning, editing: false };
+      updateTable();
+    }
+
+    function cancelEdit(index) {
+      entries[index].editing = false;
+      updateTable();
     }
 
     function downloadCSV() {
@@ -108,7 +145,7 @@
           if (!line) continue;
           const [word, meaning] = line.split(",");
           if (word && meaning) {
-            entries.push({ word, meaning });
+            entries.push({ word, meaning, editing: false });
           }
         }
         updateTable();
