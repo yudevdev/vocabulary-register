@@ -145,7 +145,7 @@
           if (!line) continue;
           const [word, meaning] = line.split(",");
           if (word && meaning) {
-            entries.push({ word, meaning, editing: false });
+            entries.push({ word.replace(/ /g, '@').replace(/　/g, '€'), meaning.replace(/ /g, '@').replace(/　/g, '€'), editing: false });
           }
         }
         updateTable();
